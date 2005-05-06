@@ -1,0 +1,8 @@
+This contains source for the "ASCII A-maze-ment" puzzle 
+posted on http://www.itasoftware.com/careers .
+
+genmaze - contains a program that will generate mazes
+
+solmaze - contains a program that will solve mazes
+
+sample-mazes - contains sample mazes and their solutions
