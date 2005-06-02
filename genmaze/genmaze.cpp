@@ -59,6 +59,9 @@
 #include <time.h>
 #include <string.h>
 
+// For uint on OSX...
+#include <readline/readline.h>
+
 // The definition for what a block can be (or'd together).
 #define EMPTY 0
 #define UP    1
