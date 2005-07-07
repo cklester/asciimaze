@@ -101,24 +101,25 @@ bool debugrows;
  *
  *  @param isLast if this row is the last one.
  */
-void outputBlock( bool isLast ) {
-	// Top line
-	for( uint i=0; i < width; i++ )
-		printf( (row[i] & UP) ? "X " : "XX" );
-	printf( "X\n" );	
+void outputBlock(bool isLast)
+{
+    // Top line
+    for (uint i = 0; i < width; i++)
+        printf((row[i] & UP) ? "X " : "XX");
+    printf("X\n");
 
-	// Middle line
-	for( uint i=0; i < width; i++ )
-		printf( (row[i] & LEFT) ? "  " : "X " );
-	printf( "X\n" );
+    // Middle line
+    for (uint i = 0; i < width; i++)
+        printf((row[i] & LEFT) ? "  " : "X ");
+    printf("X\n");
 
-	if( !isLast )
-		return;
+    if (!isLast)
+        return;
 
-	// Bottom line
-	for( uint i=0; i < width; i++ )
-		printf( "XX" );
-	printf( "X\n" );	
+    // Bottom line
+    for (uint i = 0; i < width; i++)
+        printf("XX");
+    printf("X\n");
 }
 
 /**
@@ -138,214 +139,218 @@ void outputBlock( bool isLast ) {
  *  @param isLast if this row is the last one.
  *  @param isFirst if this row is the first one.
  */
-void outputASCII( bool isLast, bool isFirst ) {
-	// Top line
-	for( int i = 0; i < BUFFER; i++ )
-		printf( " " );
+void outputASCII(bool isLast, bool isFirst)
+{
+    // Top line
+    for (int i = 0; i < BUFFER; i++)
+        printf(" ");
 
-	printf( isFirst ? " " : "|");
-	for( uint r = 0; r < width; r++ ) {
-		printf( (row[r] & UP) ? "  " : "__");
-		if( previousRow[r] & RIGHT && !( row[r] & RIGHT ) )
-			printf( " " );
-		else 
-			printf( !isFirst && !(previousRow[r] & RIGHT)  ? "|" : "_");
-	}
-	printf( "\n" );
+    printf(isFirst ? " " : "|");
+    for (uint r = 0; r < width; r++) {
+        printf((row[r] & UP) ? "  " : "__");
+        if (previousRow[r] & RIGHT && !(row[r] & RIGHT))
+            printf(" ");
+        else
+            printf(!isFirst && !(previousRow[r] & RIGHT) ? "|" : "_");
+    }
+    printf("\n");
 
-	// Middle line
-	for( int i = 0; i < BUFFER; i++ )
-		printf( " " );
+    // Middle line
+    for (int i = 0; i < BUFFER; i++)
+        printf(" ");
 
-	printf( "|" );
-	for( uint r=0; r < width; r++ ) {
-		if( debugsets )
-			printf( "%*d", 2, set[r] );
-		else
-			if( debugrows )
-				printf( "%*d", 2, row[r] );
-			else
-				printf( "  " );
-		printf( ( row[r] & RIGHT ) ? " " : "|" );
-	}
-	printf( "\n" );
+    printf("|");
+    for (uint r = 0; r < width; r++) {
+        if (debugsets)
+            printf("%*d", 2, set[r]);
+        else if (debugrows)
+            printf("%*d", 2, row[r]);
+        else
+            printf("  ");
+        printf((row[r] & RIGHT) ? " " : "|");
+    }
+    printf("\n");
 
-	// If this is the last row in the maze then fill in the bottom line.
-	if( !isLast )
-		return;
+    // If this is the last row in the maze then fill in the bottom line.
+    if (!isLast)
+        return;
 
-	for( int i = 0; i < BUFFER; i++ )
-		printf( " " );
+    for (int i = 0; i < BUFFER; i++)
+        printf(" ");
 
-	for( uint r=0; r < width; r++ ) {
-		printf( ( row[r] & LEFT ) ? "_" : "|" );
-		printf( "__" );
-	}
-	printf( "|\n" );
+    for (uint r = 0; r < width; r++) {
+        printf((row[r] & LEFT) ? "_" : "|");
+        printf("__");
+    }
+    printf("|\n");
 }
 
 /**
  * Merge set b into set a in sets set
  */
-void unionSet( uint a, uint b ) {
-	for( uint i=0; i < width; i++ ) {
-		if( set[i] == b )
-			set[i] = a;
-	}
+void unionSet(uint a, uint b)
+{
+    for (uint i = 0; i < width; i++) {
+        if (set[i] == b)
+            set[i] = a;
+    }
 }
 
 /**
  * Create and print out a row.
  * @param isLast if this is the last row
  */
-void makeRow( bool isLast ) {
-	uint startingSetNum = 1;
-	// Make sure each cell is in a set and save the previousRow
-	for( uint r=0; r < width; r++ ) {
-		previousRow[r] = row[r];
-		if( ( row[r] & DOWN ) )
-			row[r] = UP;
-		else {
-			// Find the lowest set number that isn't already taken
-			bool foundNext = false;
-			while(!foundNext){
-				bool found = false;
-				for( uint r=0; r < width; r++ ) {
-					if(set[r] == startingSetNum){
-						startingSetNum++;
-						found = true;
-						break;
-					}
-				}
-				if(!found)
-					foundNext = true;
-			}
-			set[r] = startingSetNum;
-			row[r] = EMPTY;
-		}
-	}
+void makeRow(bool isLast)
+{
+    uint startingSetNum = 1;
+    // Make sure each cell is in a set and save the previousRow
+    for (uint r = 0; r < width; r++) {
+        previousRow[r] = row[r];
+        if ((row[r] & DOWN))
+            row[r] = UP;
+        else {
+            // Find the lowest set number that isn't already taken
+            bool foundNext = false;
+            while (!foundNext) {
+                bool found = false;
+                for (uint r = 0; r < width; r++) {
+                    if (set[r] == startingSetNum) {
+                        startingSetNum++;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                    foundNext = true;
+            }
+            set[r] = startingSetNum;
+            row[r] = EMPTY;
+        }
+    }
 
-	// Randomly fill in the cells with connections down or to the left
-	for( uint i=0; i < width; i++ ) {
-		if( rand()%2 == 1 ) {
-			if( i > 0 && set[i] != set[i-1] ) {
-				row[i]   |= LEFT;
-				row[i-1] |= RIGHT;
-				unionSet( set[i], set[i-1] );
-			}
-		}
-		if( ( rand()%2 == 1 ) && !isLast ) {
-			row[i] |= DOWN;
-		}
-	}
+    // Randomly fill in the cells with connections down or to the left
+    for (uint i = 0; i < width; i++) {
+        if (rand() % 2 == 1) {
+            if (i > 0 && set[i] != set[i - 1]) {
+                row[i] |= LEFT;
+                row[i - 1] |= RIGHT;
+                unionSet(set[i], set[i - 1]);
+            }
+        }
+        if ((rand() % 2 == 1) && !isLast) {
+            row[i] |= DOWN;
+        }
+    }
 
-	// If there are any sets that don't move down in this row,
-	// make them go down.
-	if( !isLast ) {
-		for( uint r=0; r < width; r++ ) {
-			if( row[r] & DOWN )
-				continue;
-			uint mset = set[r];
-			bool goDown = true;
-			for( uint i=0; i < width; i++ ) {
-				if( set[i] == mset && row[i] & DOWN ) {
-					goDown = false;
-					break;
-				}
-			}
-			if( goDown ) {
-				row[r] |= DOWN;
-			}
-		}
-	}
+    // If there are any sets that don't move down in this row,
+    // make them go down.
+    if (!isLast) {
+        for (uint r = 0; r < width; r++) {
+            if (row[r] & DOWN)
+                continue;
+            uint mset = set[r];
+            bool goDown = true;
+            for (uint i = 0; i < width; i++) {
+                if (set[i] == mset && row[i] & DOWN) {
+                    goDown = false;
+                    break;
+                }
+            }
+            if (goDown) {
+                row[r] |= DOWN;
+            }
+        }
+    }
 
-	// last row, merge all sets so there is a path from any point
-	// to any other point (sense they are all in one set)
-	if( isLast ) {
-		for( uint r=0; r < width-1; r++ ) {
-			if( set[r] == set[r+1] )
-				continue;
-			row[r]   |= RIGHT;
-			row[r+1] |= LEFT;
-			unionSet( set[r+1], set[r] );
-		}
-	}
+    // last row, merge all sets so there is a path from any point
+    // to any other point (sense they are all in one set)
+    if (isLast) {
+        for (uint r = 0; r < width - 1; r++) {
+            if (set[r] == set[r + 1])
+                continue;
+            row[r] |= RIGHT;
+            row[r + 1] |= LEFT;
+            unionSet(set[r + 1], set[r]);
+        }
+    }
 }
 
 /**
  * Read in paramaters and output a maze line by line.
  */
-int main( int argc, char *argv[] ) {
-	// read in paramaters
-	if( argc < 3 ) {
-		fprintf( stderr, "Usage: %s [width] [height] [OPTIONS]\n", argv[0] );
-		fprintf( stderr, "\ta  - ASCII style maze (default).\n" );
-		fprintf( stderr, "\tb  - BLOCK style maze.\n" );
-		fprintf( stderr, "\tds - Turn set debug on.\n" );
-		fprintf( stderr, "\tdr - Turn row debug on.\n" );
-		fprintf( stderr, "\tr  - Turn off random generation.\n" );
-		return 1;
-	}
+int main(int argc, char *argv[])
+{
+    // read in paramaters
+    if (argc < 3) {
+        fprintf(stderr, "Usage: %s [width] [height] [OPTIONS]\n", argv[0]);
+        fprintf(stderr, "\ta  - ASCII style maze (default).\n");
+        fprintf(stderr, "\tb  - BLOCK style maze.\n");
+        fprintf(stderr, "\tds - Turn set debug on.\n");
+        fprintf(stderr, "\tdr - Turn row debug on.\n");
+        fprintf(stderr, "\tr  - Turn off random generation.\n");
+        return 1;
+    }
 
-	// Read in required args
-	width = atoi( argv[1] );
-	uint height = atoi( argv[2] );
+    // Read in required args
+    width = atoi(argv[1]);
+    uint height = atoi(argv[2]);
 
-	// Check to make sure they are valid
-	if ( width == 0 || height == 0 ) {
-		fprintf( stderr, "Maze width and height must be greater then 0.\n" );
-		return 1;
-	}
+    // Check to make sure they are valid
+    if (width == 0 || height == 0) {
+        fprintf(stderr, "Maze width and height must be greater then 0.\n");
+        return 1;
+    }
 
-	MAZETYPE type = ASCII;
-	debugsets = false;
-	srand( time( NULL ) );
+    MAZETYPE type = ASCII;
+    debugsets = false;
+    srand(time(NULL));
 
-	// Read in optional args
-	for( int i = 2; i < argc ; i++ ) {
-		if( 0 == strcmp( argv[i],"ds" ) )
-			debugsets = true;
+    // Read in optional args
+    for (int i = 2; i < argc; i++) {
+        if (0 == strcmp(argv[i], "ds"))
+            debugsets = true;
 
-		if( 0 == strcmp( argv[i],"dr" ) )
-			debugrows = true;
+        if (0 == strcmp(argv[i], "dr"))
+            debugrows = true;
 
-		// "Turn off" randomness
-		if( 0 == strcmp( argv[i],"r" ) )
-			srand( 1 );
+        // "Turn off" randomness
+        if (0 == strcmp(argv[i], "r"))
+            srand(1);
 
-		if( 0 == strcmp( argv[i],"a" ) )
-			type = ASCII;
+        if (0 == strcmp(argv[i], "a"))
+            type = ASCII;
 
-		if( 0 == strcmp( argv[i],"b" ) )
-			type = BLOCK;
-	}
+        if (0 == strcmp(argv[i], "b"))
+            type = BLOCK;
+    }
 
-	// Create/init vars
-	set = new uint[width];
-	row = new uint[width];
-	previousRow = new uint[width];
-	for( uint i = 0; i < width; i++ ) {
-		set[i] = i+width+1;
-		row[i] = 0;
-		previousRow[i] = 0;
-	}
+    // Create/init vars
+    set = new uint[width];
+    row = new uint[width];
+    previousRow = new uint[width];
+    for (uint i = 0; i < width; i++) {
+        set[i] = i + width + 1;
+        row[i] = 0;
+        previousRow[i] = 0;
+    }
 
-	// create & print out the rows
-	bool isLast, isFirst;
-	for( uint i = 0; i < height; i++ ) {
-		isLast = ( i == height-1 );
-		isFirst = ( i == 0 );
-		makeRow( isLast );
-		if( type == ASCII )
-			outputASCII( isLast, isFirst );
-		else if( type == BLOCK )
-			outputBlock( isLast );
-	}
+    // create & print out the rows
+    bool isLast, isFirst;
+    for (uint i = 0; i < height; i++) {
+        isLast = (i == height - 1);
+        isFirst = (i == 0);
+        makeRow(isLast);
+        if (type == ASCII)
+            outputASCII(isLast, isFirst);
+        else if (type == BLOCK)
+            outputBlock(isLast);
+    }
 
-	// Memory cleanup;
-	delete []set;
-	delete []row;
-	delete []previousRow;
+    // Memory cleanup;
+    delete[]set;
+    delete[]row;
+    delete[]previousRow;
 
-	return 0;
+    return 0;
 }
+
