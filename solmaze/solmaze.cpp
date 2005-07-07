@@ -1,5 +1,5 @@
 /**
- *  Copyright (C) 2004 Benjamin C Meyer (ben+asciimaze at meyerhome dot net)
+ *  Copyright (C) 2005 Benjamin C Meyer (ben at meyerhome dot net)
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Library General Public
@@ -96,6 +96,7 @@ Start|__|____________________|
 #include <readline/readline.h>
 #include <qstringlist.h>
 #include <qvector.h>
+#include <qtextstream.h>
 
 // Buffer before maze starts
 #define BUFFER 5
@@ -119,15 +120,15 @@ Start|__|____________________|
 #endif
 
 struct maze {
-	// The char list of rows used in reading/writing/solution marking.
-	QList<QString> list;
-	// width/height of the maze
-	uint width, height;
-	// A row or short's.  Each short is a cell that can be or'd with the
-	// four possible directions (UP | DOWN | LEFT | RIGHT).
-	QVector<short*> rows;
-	// The destination points
-	uint destX, destY; 
+    // The char list of rows used in reading/writing/solution marking.
+    QList < QString > list;
+    // width/height of the maze
+    uint width, height;
+    // A row or short's.  Each short is a cell that can be or'd with the
+    // four possible directions (UP | DOWN | LEFT | RIGHT).
+      QVector < short *>rows;
+    // The destination points
+    uint destX, destY;
 };
 
 /**
@@ -143,79 +144,82 @@ struct maze {
  *  @param c third row
  *  @return array of the row with directions filled in
  */
-short* convertRow( short *a, const QString &b, const QString &c,
-                   uint width ) {
-	// create a new row
-	short *row = new short[width];
-	// fill each cell
-	for( uint i=0; i < width; i++ ) {
-		// Don't waste time parsing string data, simply use the last row
-		// to init row[i] to UP or EMPTY.
-		// See if this call can move up
-		row[i] = ( ( ( a != NULL ) && ( a[i] & DOWN ) ) ? UP : EMPTY );
-		
-		// See if this cell can move down
-		if( c[i*3+BUFFER+1] != '_' )
-			row[i] |= DOWN;
-		
-		// Only parse Left/right data once and apply to both cells
-		// See if this cell can move left/right
-		if( !( b[i*3+BUFFER] == '|' ) ) {
-			row[i] |= LEFT;
-			row[i-1] |= RIGHT;
-		}
-	}
-	return row;
+short *convertRow(short *a, const QString & b, const QString & c, uint width)
+{
+    // create a new row
+    short *row = new short[width];
+    // fill each cell
+    for (uint i = 0; i < width; i++) {
+        // Don't waste time parsing string data, simply use the last row
+        // to init row[i] to UP or EMPTY.
+        // See if this call can move up
+        row[i] = (((a != NULL) && (a[i] & DOWN)) ? UP : EMPTY);
+
+        // See if this cell can move down
+        if (c[i * 3 + BUFFER + 1] != '_')
+            row[i] |= DOWN;
+
+        // Only parse Left/right data once and apply to both cells
+        // See if this cell can move left/right
+        if (!(b[i * 3 + BUFFER] == '|')) {
+            row[i] |= LEFT;
+            row[i - 1] |= RIGHT;
+        }
+    }
+    return row;
 }
 
 /**
  * Read in (from stdin) a maze, parse, and fill m
  */
-void read( maze *m ) {
-	uint lineNumber=0;
-	char *line;
-	while( ( line = readline( NULL ) ) != NULL ) {
-		m->list.append( line );
-		// Don't leak memory after saving line.
-		free(line);
+void read(maze * m)
+{
+    uint lineNumber = 0;
+    char *line = 0;
+    while ((line = readline(NULL)) != NULL) {
+        m->list.append(line);
+        // Don't leak memory after saving line.
+        free(line);
 
-		if( lineNumber == 1 )
-			m->width = ( m->list[1].length()-BUFFER )/3;
+        if (lineNumber == 1)
+            m->width = (m->list[1].length() - BUFFER) / 3;
 
-		// On the third line figuring out a row
-		if( lineNumber++ % 2 != 0 || lineNumber <= 2 )
-		  continue;
-		short *lastRow = NULL;
-		if( lineNumber > 3 )
-			lastRow = m->rows[lineNumber/2-2];
-		short *col = convertRow( lastRow,
-						m->list[lineNumber-2], m->list[lineNumber-1], m->width );
-		if( m->rows.size() <= (int)(lineNumber/2) )
-			m->rows.resize( lineNumber*4 );
-		m->rows.insert( ( lineNumber/2 )-1, col );
-	}
-	m->rows.resize( lineNumber/2 );
-	m->height = lineNumber/2-1;
+        // On the third line figuring out a row
+        if (lineNumber++ % 2 != 0 || lineNumber <= 2)
+            continue;
+        short *lastRow = NULL;
+        if (lineNumber > 3)
+            lastRow = m->rows[lineNumber / 2 - 2];
+        short *col = convertRow(lastRow,
+                                m->list[lineNumber - 2],
+                                m->list[lineNumber - 1], m->width);
+        if (m->rows.size() <= (int) (lineNumber / 2))
+            m->rows.resize(lineNumber * 4);
+        m->rows.insert((lineNumber / 2) - 1, col);
+    }
+    m->rows.resize(lineNumber / 2);
+    m->height = lineNumber / 2 - 1;
 }
-
-#include <qstring.h>
 
 /**
  * Write maze m to stdout.
- */ 
-void write( maze *m ) {
-	QList<QString>::Iterator it;
-	for ( it = m->list.begin(); it != m->list.end(); ++it ) {
-            printf( "%s\n", (*it).toLatin1().constData());
-	}
+ */
+void write(maze * m)
+{
+    QTextStream cout(stdout, QIODevice::WriteOnly);
+    QList < QString >::Iterator it;
+    for (it = m->list.begin(); it != m->list.end(); ++it) {
+        cout << (*it) << endl;
+    }
 }
 
 /**
  * Mark ascii cell x y in maze m with the marker that it is part of the solution.
  */
-inline void solutionCell( maze *m, int x, int y ) {
-	m->list[y*2+1][x*3+BUFFER+1] = PATHMARKER;
-	m->list[y*2+1][x*3+BUFFER+2] = PATHMARKER;
+inline void solutionCell(maze * m, int x, int y)
+{
+    m->list[y * 2 + 1][x * 3 + BUFFER + 1] = PATHMARKER;
+    m->list[y * 2 + 1][x * 3 + BUFFER + 2] = PATHMARKER;
 }
 
 /**
@@ -227,80 +231,76 @@ inline void solutionCell( maze *m, int x, int y ) {
  * @param y - the starting ycord
  * @param from - direction just came from
  * @return true if x,y is part of the solution.
- */ 
-bool solveMaze( maze *m, uint x, uint y, int from ) {
-	// This if shouldn't be needed if read() performed correctly
-	//if( m->height < y || x > m->width )
-	//	return;
+ */
+bool solveMaze(maze * m, uint x, uint y, int from)
+{
+    // This if shouldn't be needed if read() performed correctly
+    //if( m->height < y || x > m->width )
+    //      return;
 
-	short cell = m->rows[y][x];
+    short cell = m->rows[y][x];
 
 #ifdef CHECKEDFORBRAIDS
-	if( cell & CHECKED )
-		return false;
-	m->rows[y][x] |= CHECKED;
+    if (cell & CHECKED)
+        return false;
+    m->rows[y][x] |= CHECKED;
 #endif
 
-	if( x == m->destX && y == m->destY ) {
-		// Don't bother checking its children
-		solutionCell( m, x, y );
-	  return true;
-	}
+    if (x == m->destX && y == m->destY) {
+        // Don't bother checking its children
+        solutionCell(m, x, y);
+        return true;
+    }
 
-	bool foundEnd = false;
+    bool foundEnd = false;
 
-	// Don't go back the way you just came
-	if( from != RIGHT && cell & LEFT )
-		foundEnd = solveMaze( m, x-1,y, LEFT );
-	if( !foundEnd && ( from != DOWN && ( cell & UP ) ) )
-		foundEnd = solveMaze( m, x, y-1, UP );
-	if( !foundEnd && ( from != UP && ( cell & DOWN ) ) )
-		foundEnd =  solveMaze( m, x, y+1, DOWN );
-	if( !foundEnd && ( from != LEFT && ( cell & RIGHT ) ) )
-		foundEnd = solveMaze( m, x+1, y, RIGHT );
+    // Don't go back the way you just came
+    if (from != RIGHT && cell & LEFT)
+        foundEnd = solveMaze(m, x - 1, y, LEFT);
+    if (!foundEnd && (from != DOWN && (cell & UP)))
+        foundEnd = solveMaze(m, x, y - 1, UP);
+    if (!foundEnd && (from != UP && (cell & DOWN)))
+        foundEnd = solveMaze(m, x, y + 1, DOWN);
+    if (!foundEnd && (from != LEFT && (cell & RIGHT)))
+        foundEnd = solveMaze(m, x + 1, y, RIGHT);
 
-	// If this is on the path mark it
-	if(foundEnd)
-		solutionCell( m, x, y );
+    // If this is on the path mark it
+    if (foundEnd)
+        solutionCell(m, x, y);
 
-	return foundEnd;
+    return foundEnd;
 }
 
 /**
  * Read in an ascii maze, solve it and output it with the solution.
  * @return 1 if there is no path found.
  */
-int main( int /* argc */, char * /* argv[]*/ ) {
-	// Init
-	maze m;
-	m.width = m.height = 0;
-	m.rows.resize( 2 );
+int main(int /* argc */ , char * /* argv[] */ )
+{
+    maze m;
+    m.width = m.height = 0;
+    m.rows.resize(2);
 
-	// Read the maze
-	read( &m );
+    // Read the maze
+    read(&m);
 
-	// Choose start and ending points for the maze
-	m.destX = m.width-1;
-	m.destY = 0;
-	uint startX = 0;
-	uint startY = m.height;
+    // Choose start and ending points for the maze
+    m.destX = m.width - 1;
+    m.destY = 0;
+    uint startX = 0;
+    uint startY = m.height;
 
-	// Attempt to find the solution
-	int isSolvable = solveMaze( &m, startX, startY, EMPTY );
+    // Attempt to find the solution
+    int isSolvable = solveMaze(&m, startX, startY, EMPTY);
 
-	if( isSolvable ) {
-		// Write out the solution
-		write( &m );
-	}
-	else {
-		// Error, no solution!
-		fprintf( stderr, "No path found through maze.\n" );
-	}
+    if (isSolvable)
+        write(&m);
+    else
+        fprintf(stderr, "No path found through maze.\n");
 
-	// Memory cleanup
-	for( uint row=0; row <= m.height; row++ )
-		delete [](m.rows[row]);
+    // Memory cleanup
+    for (uint row = 0; row <= m.height; row++)
+        delete[](m.rows[row]);
 
-	return isSolvable;
+    return isSolvable;
 }
-
