@@ -74,7 +74,7 @@ Start|__|____________________|
  * modifications in only those two places to support any maze format.  One
  * could even takes this a step further and have this program input a
  * compressed maze and a wrapper shell script convert ascii maze data into
- * that format. QCString's were used to store the data because they are simple
+ * that format. QString's were used to store the data because they are simple
  * to use and not what the point of the problem was about.
  *
  * Enough on that, onto the more juicy stuff.  With the constrains that the 
@@ -95,7 +95,7 @@ Start|__|____________________|
 #include <stdio.h>
 #include <readline/readline.h>
 #include <qstringlist.h>
-#include <qptrvector.h>
+#include <qvector.h>
 
 // Buffer before maze starts
 #define BUFFER 5
@@ -120,12 +120,12 @@ Start|__|____________________|
 
 struct maze {
 	// The char list of rows used in reading/writing/solution marking.
-	QValueList<QCString> list;
+	QList<QString> list;
 	// width/height of the maze
 	uint width, height;
 	// A row or short's.  Each short is a cell that can be or'd with the
 	// four possible directions (UP | DOWN | LEFT | RIGHT).
-	QPtrVector<short> rows;
+	QVector<short*> rows;
 	// The destination points
 	uint destX, destY; 
 };
@@ -143,7 +143,7 @@ struct maze {
  *  @param c third row
  *  @return array of the row with directions filled in
  */
-short* convertRow( short *a, const QCString &b, const QCString &c,
+short* convertRow( short *a, const QString &b, const QString &c,
                    uint width ) {
 	// create a new row
 	short *row = new short[width];
@@ -188,9 +188,9 @@ void read( maze *m ) {
 		short *lastRow = NULL;
 		if( lineNumber > 3 )
 			lastRow = m->rows[lineNumber/2-2];
-	  short *col = convertRow( lastRow,
+		short *col = convertRow( lastRow,
 						m->list[lineNumber-2], m->list[lineNumber-1], m->width );
-		if( m->rows.size() <= lineNumber/2 )
+		if( m->rows.size() <= (int)(lineNumber/2) )
 			m->rows.resize( lineNumber*4 );
 		m->rows.insert( ( lineNumber/2 )-1, col );
 	}
@@ -198,14 +198,15 @@ void read( maze *m ) {
 	m->height = lineNumber/2-1;
 }
 
+#include <qstring.h>
+
 /**
  * Write maze m to stdout.
  */ 
 void write( maze *m ) {
-	QValueList<QCString>::Iterator it;
+	QList<QString>::Iterator it;
 	for ( it = m->list.begin(); it != m->list.end(); ++it ) {
-		const char* f = ( *it );
-		printf( "%s\n", f );
+            printf( "%s\n", (*it).toLatin1().constData());
 	}
 }
 
@@ -302,3 +303,4 @@ int main( int /* argc */, char * /* argv[]*/ ) {
 
 	return isSolvable;
 }
+
