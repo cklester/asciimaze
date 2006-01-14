@@ -58,9 +58,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
-
-// For uint on OSX...
-#include <readline/readline.h>
+#include <sys/types.h>
 
 // The definition for what a block can be (or'd together).
 #define EMPTY 0
